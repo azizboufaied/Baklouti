@@ -10,8 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Cartographie des acteurs du piment en Tunisie",
-    template: "%s — Cartographie du piment",
+    default: "Baklouti — Cartographie des acteurs du piment en Tunisie",
+    template: "%s — Baklouti",
   },
   description:
     "Annuaire géolocalisé des centres de recherche, laboratoires, semenciers et industriels " +

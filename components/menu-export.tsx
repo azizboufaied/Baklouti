@@ -35,7 +35,7 @@ export default function MenuExport({ parametres }: { parametres: string }) {
   const codeEmbed =
     typeof window === "undefined"
       ? ""
-      : `<iframe src="${window.location.origin}/embed${requeteEmbed}" width="100%" height="480" style="border:0" loading="lazy" title="Cartographie des acteurs du piment en Tunisie"></iframe>`;
+      : `<iframe src="${window.location.origin}/embed${requeteEmbed}" width="100%" height="480" style="border:0" loading="lazy" title="Baklouti — Cartographie des acteurs du piment en Tunisie"></iframe>`;
 
   const copier = async () => {
     try {

@@ -98,8 +98,11 @@ export default function Annuaire({ structures, categories }: Props) {
             🌶️
           </span>
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold text-ardoise-900">
-              Cartographie des acteurs du piment en Tunisie
+            <h1 className="flex items-baseline gap-2 truncate text-sm font-semibold text-ardoise-900">
+              Baklouti
+              <span className="truncate font-normal text-ardoise-500">
+                Cartographie des acteurs du piment en Tunisie
+              </span>
             </h1>
             <p className="text-xs text-ardoise-500">
               {structures.length} acteurs · {categories.length} catégories

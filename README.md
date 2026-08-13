@@ -1,9 +1,15 @@
-# Cartographie des acteurs du piment en Tunisie
+# Baklouti
+
+**Cartographie des acteurs du piment en Tunisie.**
 
 Annuaire géolocalisé de la filière piment : centres de recherche, laboratoires,
 semenciers et industriels. Carte interactive filtrable par catégorie, recherche
 plein texte, fiches détaillées, back-office de gestion et formulaire de
 proposition public.
+
+Le projet porte le nom du *baklouti*, le cultivar de piment tunisien — la plante
+que toute la filière cartographiée ici travaille, de la sélection variétale à la
+harissa.
 
 Inspiré de [GoGoCarto](https://gogocarto.fr), reconstruit sur une pile plus légère.
 

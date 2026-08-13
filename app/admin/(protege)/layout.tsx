@@ -18,7 +18,9 @@ export default async function LayoutProtege({ children }: { children: React.Reac
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3">
           <Link href="/admin" className="flex items-center gap-2 font-semibold text-ardoise-900">
             <span aria-hidden>🌶️</span>
-            <span className="text-sm">Administration</span>
+            <span className="text-sm">
+              Baklouti <span className="font-normal text-ardoise-500">Administration</span>
+            </span>
           </Link>
 
           <nav className="flex items-center gap-1 text-sm">
