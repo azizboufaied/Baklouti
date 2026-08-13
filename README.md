@@ -17,17 +17,24 @@ Inspiré de [GoGoCarto](https://gogocarto.fr), reconstruit sur une pile plus lé
 
 ## Démarrage
 
+Il faut une base Postgres. Le plus simple est un projet [Supabase](https://supabase.com)
+gratuit, utilisable aussi bien en local qu'en production.
+
 ```bash
 npm install
+cp .env.local.example .env.local   # puis coller la chaîne de connexion Supabase
+npm run db:push                    # crée les tables et sème les 13 structures
 npm run dev
 ```
 
-L'application est sur <http://localhost:3000>. Aucune configuration n'est
-nécessaire : au premier lancement, la base SQLite est créée et remplie
-automatiquement depuis `data/structures.seed.json`.
+L'application est sur <http://localhost:3000>, l'administration sur
+<http://localhost:3000/admin> — mot de passe `piment` par défaut
+(voir [Configuration](#configuration)).
 
-L'administration est sur <http://localhost:3000/admin> — mot de passe `piment`
-par défaut en local (voir [Configuration](#configuration)).
+La chaîne de connexion se trouve dans Supabase : **Project Settings → Database →
+Connection string → Transaction pooler** (port 6543). C'est le mode adapté aux
+environnements serverless comme Vercel, où chaque requête peut réveiller une
+instance distincte.
 
 ## Ce que contient l'annuaire
 
@@ -49,7 +56,7 @@ portée nationale, réparties en 5 catégories.
 | Choix | Pourquoi |
 | --- | --- |
 | **Next.js 16** (App Router) | Un seul déployable : pages, API et mutations au même endroit. Pas de backend séparé à héberger. |
-| **SQLite** via `node:sqlite` | Module intégré à Node : aucune dépendance native à compiler, aucun service à lancer. Transactions réelles, contrairement à un fichier JSON. |
+| **Postgres** (Supabase) via `postgres.js` | Persistance réelle en serverless, où le système de fichiers est en lecture seule. PostGIS activable si des requêtes spatiales deviennent utiles. |
 | **Leaflet** (API directe) | Le regroupement de marqueurs est un greffon *vanilla* ; piloter Leaflet sans surcouche évite les décalages de version avec React. |
 | **Zod** | Toute entrée — formulaire admin comme proposition publique — est validée côté serveur avant d'atteindre la base. |
 | **Nominatim** (OpenStreetMap) | Géocodage gratuit et libre, sans clé d'API. |
@@ -83,13 +90,13 @@ Les acteurs sans adresse ponctuelle (`Localisation = "Tunisie"`) sont marqués
 
 ## Configuration
 
-Copiez `.env.local.example` en `.env.local`. Tout est facultatif en local.
+Copiez `.env.local.example` en `.env.local`. Ce fichier est ignoré par git.
 
 | Variable | Défaut | Rôle |
 | --- | --- | --- |
+| `DATABASE_URL` | — | **Obligatoire.** Chaîne de connexion Postgres (Supabase, pooler transactionnel). |
 | `ADMIN_PASSWORD` | `piment` | Mot de passe de l'administration. **Obligatoire avant toute mise en ligne** — un bandeau d'avertissement s'affiche tant qu'il n'est pas défini. |
 | `SESSION_SECRET` | dérivé du mot de passe | Signature des cookies de session. Par défaut, changer le mot de passe invalide les sessions ouvertes. |
-| `DATABASE_PATH` | `data/annuaire.db` | Emplacement du fichier SQLite. |
 
 ## Mettre à jour les données
 
@@ -104,12 +111,13 @@ Il respecte la politique d'usage de Nominatim (une requête par seconde, en-têt
 `User-Agent` identifiable) et met les réponses en cache dans
 `scripts/.geocode-cache.json` : les exécutions suivantes sont instantanées.
 
-Le fichier généré ne sert qu'à **initialiser** une base vide. Pour repartir des
-données du tableur en écrasant les modifications faites dans l'admin :
+Le fichier généré ne sert qu'à **initialiser** une base vide. `npm run db:push`
+applique les migrations puis ne sème que si la base est vide — il est donc sans
+danger à relancer. Pour repartir du tableur en écrasant les modifications faites
+dans l'admin :
 
 ```bash
-npm run db:reset
-npm run dev
+npm run db:push -- --force
 ```
 
 ## Vérifications
@@ -119,6 +127,18 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+## Déploiement sur Vercel
+
+1. [vercel.com/new](https://vercel.com/new) → importer le dépôt. Next.js est
+   détecté automatiquement, aucun réglage de build n'est nécessaire.
+2. Renseigner les variables d'environnement du projet : `DATABASE_URL`,
+   `ADMIN_PASSWORD`, `SESSION_SECRET`.
+3. Déployer, puis lancer une fois `npm run db:push` en local avec la même
+   `DATABASE_URL` — la base est partagée, le schéma n'a besoin d'être créé qu'une fois.
+
+Le cookie de session passe automatiquement en `secure` en production. Le script
+d'import Python reste un outil local : il ne s'exécute jamais sur Vercel.
 
 ## Intégrer la carte ailleurs
 
@@ -131,12 +151,20 @@ sont conservés dans l'URL :
         title="Cartographie des acteurs du piment en Tunisie"></iframe>
 ```
 
-## Passer à PostgreSQL/PostGIS
+## Sécurité de la base
 
-Utile si le volume grossit franchement ou si des requêtes spatiales deviennent
-nécessaires (« tous les acteurs dans un rayon de 50 km »). Seuls `lib/db.ts` et
-`lib/repo.ts` accèdent aux données : le reste de l'application ne connaît que les
-types de `lib/types.ts`. Remplacer ces deux fichiers suffit.
+Supabase expose automatiquement le schéma `public` en API REST via la clé
+anonyme, qui est publique. La migration active donc `row level security` sur les
+deux tables **sans définir la moindre politique** : l'API anonyme est fermée,
+tandis que l'application, qui se connecte en direct avec le rôle propriétaire,
+continue de fonctionner normalement.
+
+## Faire évoluer le stockage
+
+Seuls `lib/db.ts` et `lib/repo.ts` accèdent aux données ; le reste de
+l'application ne connaît que les types de `lib/types.ts`. Activer PostGIS pour
+des requêtes de proximité (« tous les acteurs dans un rayon de 50 km ») ne
+touche donc que ces deux fichiers.
 
 ## Crédits
 

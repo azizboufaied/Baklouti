@@ -1,15 +1,16 @@
 import "server-only";
-import { db } from "./db";
+import type postgres from "postgres";
+import { sql } from "./db";
 import type { Activite, Precision, Source, Statut, Structure, StructureFilters } from "./types";
 import type { ActiviteInput, StructureInput } from "./schemas";
 
 /**
- * Seul module qui écrit du SQL. Les pages et routes consomment uniquement
- * les types de `lib/types.ts`, ce qui rend le passage a Postgres/PostGIS local.
+ * Seul module qui écrit du SQL. Les pages et routes consomment uniquement les
+ * types de `lib/types.ts` : changer de base ne touche que `db.ts` et ce fichier.
  */
 
 type LigneStructure = {
-  id: number;
+  id: string | number;
   slug: string;
   nom: string;
   sigle: string | null;
@@ -20,8 +21,8 @@ type LigneStructure = {
   site_web: string | null;
   lat: number | null;
   lng: number | null;
-  precision: string;
-  national: number;
+  precision_geo: string;
+  national: boolean;
   geocode_query: string | null;
   geocode_display_name: string | null;
   statut: string;
@@ -29,13 +30,13 @@ type LigneStructure = {
   proposant_nom: string | null;
   proposant_email: string | null;
   note_proposition: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 };
 
 type LigneActivite = {
-  id: number;
-  structure_id: number;
+  id: string | number;
+  structure_id: string | number;
   categorie: string;
   thematique: string | null;
   domaine: string | null;
@@ -44,8 +45,8 @@ type LigneActivite = {
 
 function versActivite(ligne: LigneActivite): Activite {
   return {
-    id: ligne.id,
-    structureId: ligne.structure_id,
+    id: Number(ligne.id),
+    structureId: Number(ligne.structure_id),
     categorie: ligne.categorie,
     thematique: ligne.thematique,
     domaine: ligne.domaine,
@@ -55,7 +56,7 @@ function versActivite(ligne: LigneActivite): Activite {
 
 function versStructure(ligne: LigneStructure, activites: Activite[]): Structure {
   return {
-    id: ligne.id,
+    id: Number(ligne.id),
     slug: ligne.slug,
     nom: ligne.nom,
     sigle: ligne.sigle,
@@ -66,8 +67,8 @@ function versStructure(ligne: LigneStructure, activites: Activite[]): Structure 
     siteWeb: ligne.site_web,
     lat: ligne.lat,
     lng: ligne.lng,
-    precision: ligne.precision as Precision,
-    national: ligne.national === 1,
+    precision: ligne.precision_geo as Precision,
+    national: ligne.national,
     geocodeQuery: ligne.geocode_query,
     geocodeDisplayName: ligne.geocode_display_name,
     statut: ligne.statut as Statut,
@@ -75,119 +76,121 @@ function versStructure(ligne: LigneStructure, activites: Activite[]): Structure 
     proposantNom: ligne.proposant_nom,
     proposantEmail: ligne.proposant_email,
     noteProposition: ligne.note_proposition,
-    createdAt: ligne.created_at,
-    updatedAt: ligne.updated_at,
+    // Sérialisable tel quel vers les composants client, contrairement à un Date.
+    createdAt: ligne.created_at.toISOString(),
+    updatedAt: ligne.updated_at.toISOString(),
     activites,
   };
 }
 
-/** Charge les activites de plusieurs structures en une requete (evite le N+1). */
-function activitesPar(structureIds: number[]): Map<number, Activite[]> {
+/** Charge les activités de plusieurs structures en une requête (évite le N+1). */
+async function activitesPar(structureIds: number[]): Promise<Map<number, Activite[]>> {
   const groupes = new Map<number, Activite[]>();
   if (structureIds.length === 0) return groupes;
 
-  const trous = structureIds.map(() => "?").join(", ");
-  const lignes = db
-    .prepare(
-      `SELECT id, structure_id, categorie, thematique, domaine, activite
-         FROM activites
-        WHERE structure_id IN (${trous})
-        ORDER BY structure_id, position, id`,
-    )
-    .all(...structureIds) as LigneActivite[];
+  const lignes = (await sql`
+    SELECT id, structure_id, categorie, thematique, domaine, activite
+      FROM activites
+     WHERE structure_id = ANY(${structureIds})
+     ORDER BY structure_id, position, id
+  `) as unknown as LigneActivite[];
 
   for (const ligne of lignes) {
-    const liste = groupes.get(ligne.structure_id) ?? [];
+    const cle = Number(ligne.structure_id);
+    const liste = groupes.get(cle) ?? [];
     liste.push(versActivite(ligne));
-    groupes.set(ligne.structure_id, liste);
+    groupes.set(cle, liste);
   }
   return groupes;
 }
 
-export function listerStructures(filtres: StructureFilters = {}): Structure[] {
-  const { categories, recherche, statut = "publie" } = filtres;
-
-  const conditions: string[] = ["s.statut = ?"];
-  const parametres: (string | number)[] = [statut];
-
-  if (categories?.length) {
-    const trous = categories.map(() => "?").join(", ");
-    conditions.push(
-      `EXISTS (SELECT 1 FROM activites a WHERE a.structure_id = s.id AND a.categorie IN (${trous}))`,
-    );
-    parametres.push(...categories);
-  }
-
-  if (recherche?.trim()) {
-    const motif = `%${recherche.trim()}%`;
-    conditions.push(`(
-      s.nom LIKE ? OR s.localisation LIKE ? OR s.ville LIKE ?
-      OR EXISTS (
-        SELECT 1 FROM activites a
-         WHERE a.structure_id = s.id
-           AND (a.categorie LIKE ? OR a.thematique LIKE ? OR a.domaine LIKE ? OR a.activite LIKE ?)
-      )
-    )`);
-    parametres.push(motif, motif, motif, motif, motif, motif, motif);
-  }
-
-  const lignes = db
-    .prepare(
-      `SELECT s.* FROM structures s
-        WHERE ${conditions.join(" AND ")}
-        ORDER BY s.national ASC, s.nom COLLATE NOCASE ASC`,
-    )
-    .all(...parametres) as LigneStructure[];
-
-  const groupes = activitesPar(lignes.map((ligne) => ligne.id));
-  return lignes.map((ligne) => versStructure(ligne, groupes.get(ligne.id) ?? []));
+async function assembler(lignes: LigneStructure[]): Promise<Structure[]> {
+  const groupes = await activitesPar(lignes.map((ligne) => Number(ligne.id)));
+  return lignes.map((ligne) => versStructure(ligne, groupes.get(Number(ligne.id)) ?? []));
 }
 
-export function compterParStatut(): Record<Statut, number> {
-  const lignes = db
-    .prepare("SELECT statut, COUNT(*) AS total FROM structures GROUP BY statut")
-    .all() as { statut: string; total: number }[];
+export async function listerStructures(filtres: StructureFilters = {}): Promise<Structure[]> {
+  const { categories, recherche, statut = "publie" } = filtres;
+
+  const filtreCategories =
+    categories && categories.length > 0
+      ? sql`AND EXISTS (
+              SELECT 1 FROM activites a
+               WHERE a.structure_id = s.id AND a.categorie = ANY(${categories})
+            )`
+      : sql``;
+
+  const terme = recherche?.trim();
+  const filtreRecherche = terme
+    ? sql`AND (
+            s.nom ILIKE ${"%" + terme + "%"}
+         OR s.localisation ILIKE ${"%" + terme + "%"}
+         OR s.ville ILIKE ${"%" + terme + "%"}
+         OR EXISTS (
+              SELECT 1 FROM activites a
+               WHERE a.structure_id = s.id
+                 AND (a.categorie   ILIKE ${"%" + terme + "%"}
+                   OR a.thematique  ILIKE ${"%" + terme + "%"}
+                   OR a.domaine     ILIKE ${"%" + terme + "%"}
+                   OR a.activite    ILIKE ${"%" + terme + "%"})
+            )
+          )`
+    : sql``;
+
+  const lignes = (await sql`
+    SELECT * FROM structures s
+     WHERE s.statut = ${statut}
+       ${filtreCategories}
+       ${filtreRecherche}
+     ORDER BY s.national ASC, s.nom ASC
+  `) as unknown as LigneStructure[];
+
+  return assembler(lignes);
+}
+
+export async function compterParStatut(): Promise<Record<Statut, number>> {
+  const lignes = (await sql`
+    SELECT statut, COUNT(*)::int AS total FROM structures GROUP BY statut
+  `) as unknown as { statut: string; total: number }[];
 
   const compteurs: Record<Statut, number> = { publie: 0, en_attente: 0, rejete: 0 };
   for (const ligne of lignes) compteurs[ligne.statut as Statut] = ligne.total;
   return compteurs;
 }
 
-export function obtenirStructure(id: number): Structure | null {
-  const ligne = db.prepare("SELECT * FROM structures WHERE id = ?").get(id) as
-    | LigneStructure
-    | undefined;
-  if (!ligne) return null;
-  return versStructure(ligne, activitesPar([ligne.id]).get(ligne.id) ?? []);
+export async function obtenirStructure(id: number): Promise<Structure | null> {
+  const lignes = (await sql`
+    SELECT * FROM structures WHERE id = ${id}
+  `) as unknown as LigneStructure[];
+
+  if (lignes.length === 0) return null;
+  return (await assembler(lignes))[0];
 }
 
-export function obtenirStructureParSlug(slug: string): Structure | null {
-  const ligne = db.prepare("SELECT * FROM structures WHERE slug = ?").get(slug) as
-    | LigneStructure
-    | undefined;
-  if (!ligne) return null;
-  return versStructure(ligne, activitesPar([ligne.id]).get(ligne.id) ?? []);
+export async function obtenirStructureParSlug(slug: string): Promise<Structure | null> {
+  const lignes = (await sql`
+    SELECT * FROM structures WHERE slug = ${slug}
+  `) as unknown as LigneStructure[];
+
+  if (lignes.length === 0) return null;
+  return (await assembler(lignes))[0];
 }
 
-/** Toutes les categories publiees, avec le nombre de structures concernees. */
-export function listerCategories(): { categorie: string; total: number }[] {
-  const lignes = db
-    .prepare(
-      `SELECT a.categorie AS categorie, COUNT(DISTINCT s.id) AS total
-         FROM activites a
-         JOIN structures s ON s.id = a.structure_id
-        WHERE s.statut = 'publie'
-        GROUP BY a.categorie
-        ORDER BY total DESC, a.categorie COLLATE NOCASE ASC`,
-    )
-    .all() as { categorie: string; total: number }[];
+/** Toutes les catégories publiées, avec le nombre de structures concernées. */
+export async function listerCategories(): Promise<{ categorie: string; total: number }[]> {
+  const lignes = (await sql`
+    SELECT a.categorie AS categorie, COUNT(DISTINCT s.id)::int AS total
+      FROM activites a
+      JOIN structures s ON s.id = a.structure_id
+     WHERE s.statut = 'publie'
+     GROUP BY a.categorie
+     ORDER BY total DESC, a.categorie ASC
+  `) as unknown as { categorie: string; total: number }[];
 
-  // `node:sqlite` renvoie des objets a prototype nul : React refuse de les
-  // transmettre aux composants client. On recopie en objets simples.
   return lignes.map((ligne) => ({ categorie: ligne.categorie, total: ligne.total }));
 }
 
-// ------------------------------------------------------------------- ecriture
+// ------------------------------------------------------------------- écriture
 
 function decouperSigle(nom: string): { sigle: string | null; libelle: string } {
   for (const separateur of [" – ", " — ", " - "]) {
@@ -216,36 +219,46 @@ function slugifier(valeur: string): string {
   );
 }
 
-function slugUnique(base: string, exclureId?: number): string {
-  const requete = db.prepare("SELECT id FROM structures WHERE slug = ?");
-  let slug = base;
+async function slugUnique(base: string, exclureId?: number): Promise<string> {
+  const pris = (await sql`
+    SELECT slug FROM structures
+     WHERE slug LIKE ${base + "%"} ${exclureId ? sql`AND id <> ${exclureId}` : sql``}
+  `) as unknown as { slug: string }[];
+
+  const occupes = new Set(pris.map((ligne) => ligne.slug));
+  if (!occupes.has(base)) return base;
+
   let suffixe = 2;
-  for (;;) {
-    const existant = requete.get(slug) as { id: number } | undefined;
-    if (!existant || existant.id === exclureId) return slug;
-    slug = `${base}-${suffixe++}`;
-  }
+  while (occupes.has(`${base}-${suffixe}`)) suffixe++;
+  return `${base}-${suffixe}`;
 }
 
-function remplacerActivites(structureId: number, activites: ActiviteInput[]): void {
-  db.prepare("DELETE FROM activites WHERE structure_id = ?").run(structureId);
-  const insertion = db.prepare(
-    `INSERT INTO activites (structure_id, categorie, thematique, domaine, activite, position)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  );
-  activites.forEach((activite, index) => {
-    insertion.run(
-      structureId,
-      activite.categorie,
-      activite.thematique,
-      activite.domaine,
-      activite.activite,
-      index,
-    );
-  });
+type Transaction = postgres.TransactionSql;
+
+async function remplacerActivites(
+  tx: Transaction,
+  structureId: number,
+  activites: ActiviteInput[],
+): Promise<void> {
+  await tx`DELETE FROM activites WHERE structure_id = ${structureId}`;
+
+  if (activites.length === 0) return;
+
+  await tx`
+    INSERT INTO activites ${tx(
+      activites.map((activite, index) => ({
+        structure_id: structureId,
+        categorie: activite.categorie,
+        thematique: activite.thematique,
+        domaine: activite.domaine,
+        activite: activite.activite,
+        position: index,
+      })),
+    )}
+  `;
 }
 
-/** Precision deduite quand les coordonnees sont saisies ou geocodees. */
+/** Précision déduite quand les coordonnées sont saisies ou géocodées. */
 function precisionPour(donnees: {
   national: boolean;
   lat: number | null;
@@ -268,53 +281,34 @@ type DonneesCreation = StructureInput & {
   noteProposition?: string | null;
 };
 
-export function creerStructure(donnees: DonneesCreation): Structure {
+export async function creerStructure(donnees: DonneesCreation): Promise<Structure> {
   const { sigle, libelle } = decouperSigle(donnees.nom);
-  const maintenant = new Date().toISOString();
+  const slug = await slugUnique(slugifier(sigle ?? libelle));
 
-  db.exec("BEGIN");
-  try {
-    const { lastInsertRowid } = db
-      .prepare(
-        `INSERT INTO structures (
-           slug, nom, sigle, libelle, localisation, ville, contact, site_web,
-           lat, lng, precision, national, geocode_query, geocode_display_name,
-           statut, source, proposant_nom, proposant_email, note_proposition,
-           created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  const id = await sql.begin(async (tx) => {
+    const [ligne] = (await tx`
+      INSERT INTO structures (
+        slug, nom, sigle, libelle, localisation, ville, contact, site_web,
+        lat, lng, precision_geo, national, geocode_query, geocode_display_name,
+        statut, source, proposant_nom, proposant_email, note_proposition
+      ) VALUES (
+        ${slug}, ${donnees.nom}, ${sigle}, ${libelle}, ${donnees.localisation},
+        ${donnees.ville}, ${donnees.contact}, ${donnees.siteWeb},
+        ${donnees.lat}, ${donnees.lng}, ${precisionPour(donnees)}, ${donnees.national},
+        ${donnees.geocodeQuery ?? null}, ${donnees.geocodeDisplayName ?? null},
+        ${donnees.statut ?? "publie"}, ${donnees.source ?? "admin"},
+        ${donnees.proposantNom ?? null}, ${donnees.proposantEmail ?? null},
+        ${donnees.noteProposition ?? null}
       )
-      .run(
-        slugUnique(slugifier(sigle ?? libelle)),
-        donnees.nom,
-        sigle,
-        libelle,
-        donnees.localisation,
-        donnees.ville,
-        donnees.contact,
-        donnees.siteWeb,
-        donnees.lat,
-        donnees.lng,
-        precisionPour(donnees),
-        donnees.national ? 1 : 0,
-        donnees.geocodeQuery ?? null,
-        donnees.geocodeDisplayName ?? null,
-        donnees.statut ?? "publie",
-        donnees.source ?? "admin",
-        donnees.proposantNom ?? null,
-        donnees.proposantEmail ?? null,
-        donnees.noteProposition ?? null,
-        maintenant,
-        maintenant,
-      );
+      RETURNING id
+    `) as unknown as { id: string | number }[];
 
-    const id = Number(lastInsertRowid);
-    remplacerActivites(id, donnees.activites);
-    db.exec("COMMIT");
-    return obtenirStructure(id)!;
-  } catch (erreur) {
-    db.exec("ROLLBACK");
-    throw erreur;
-  }
+    const identifiant = Number(ligne.id);
+    await remplacerActivites(tx, identifiant, donnees.activites);
+    return identifiant;
+  });
+
+  return (await obtenirStructure(id))!;
 }
 
 type DonneesModification = StructureInput & {
@@ -323,78 +317,75 @@ type DonneesModification = StructureInput & {
   geocodeDisplayName?: string | null;
 };
 
-export function modifierStructure(id: number, donnees: DonneesModification): Structure | null {
-  const existante = obtenirStructure(id);
+export async function modifierStructure(
+  id: number,
+  donnees: DonneesModification,
+): Promise<Structure | null> {
+  const existante = await obtenirStructure(id);
   if (!existante) return null;
 
   const { sigle, libelle } = decouperSigle(donnees.nom);
-  const nomChange = existante.nom !== donnees.nom;
+  const slug =
+    existante.nom === donnees.nom
+      ? existante.slug
+      : await slugUnique(slugifier(sigle ?? libelle), id);
 
-  db.exec("BEGIN");
-  try {
-    db.prepare(
-      `UPDATE structures SET
-         slug = ?, nom = ?, sigle = ?, libelle = ?, localisation = ?, ville = ?,
-         contact = ?, site_web = ?, lat = ?, lng = ?, precision = ?, national = ?,
-         geocode_query = ?, geocode_display_name = ?, updated_at = ?
-       WHERE id = ?`,
-    ).run(
-      nomChange ? slugUnique(slugifier(sigle ?? libelle), id) : existante.slug,
-      donnees.nom,
-      sigle,
-      libelle,
-      donnees.localisation,
-      donnees.ville,
-      donnees.contact,
-      donnees.siteWeb,
-      donnees.lat,
-      donnees.lng,
-      precisionPour({ ...donnees, precision: donnees.precision ?? existante.precision }),
-      donnees.national ? 1 : 0,
-      donnees.geocodeQuery ?? existante.geocodeQuery,
-      donnees.geocodeDisplayName ?? existante.geocodeDisplayName,
-      new Date().toISOString(),
-      id,
-    );
-    remplacerActivites(id, donnees.activites);
-    db.exec("COMMIT");
-    return obtenirStructure(id);
-  } catch (erreur) {
-    db.exec("ROLLBACK");
-    throw erreur;
-  }
+  await sql.begin(async (tx) => {
+    await tx`
+      UPDATE structures SET
+        slug = ${slug}, nom = ${donnees.nom}, sigle = ${sigle}, libelle = ${libelle},
+        localisation = ${donnees.localisation}, ville = ${donnees.ville},
+        contact = ${donnees.contact}, site_web = ${donnees.siteWeb},
+        lat = ${donnees.lat}, lng = ${donnees.lng},
+        precision_geo = ${precisionPour({
+          ...donnees,
+          precision: donnees.precision ?? existante.precision,
+        })},
+        national = ${donnees.national},
+        geocode_query = ${donnees.geocodeQuery ?? existante.geocodeQuery},
+        geocode_display_name = ${donnees.geocodeDisplayName ?? existante.geocodeDisplayName},
+        updated_at = now()
+      WHERE id = ${id}
+    `;
+    await remplacerActivites(tx, id, donnees.activites);
+  });
+
+  return obtenirStructure(id);
 }
 
-export function changerStatut(id: number, statut: Statut): Structure | null {
-  const resultat = db
-    .prepare("UPDATE structures SET statut = ?, updated_at = ? WHERE id = ?")
-    .run(statut, new Date().toISOString(), id);
-  return resultat.changes > 0 ? obtenirStructure(id) : null;
+export async function changerStatut(id: number, statut: Statut): Promise<Structure | null> {
+  const lignes = (await sql`
+    UPDATE structures SET statut = ${statut}, updated_at = now()
+     WHERE id = ${id}
+     RETURNING id
+  `) as unknown as { id: string | number }[];
+
+  return lignes.length > 0 ? obtenirStructure(id) : null;
 }
 
-export function supprimerStructure(id: number): boolean {
-  return db.prepare("DELETE FROM structures WHERE id = ?").run(id).changes > 0;
+export async function supprimerStructure(id: number): Promise<boolean> {
+  const lignes = (await sql`
+    DELETE FROM structures WHERE id = ${id} RETURNING id
+  `) as unknown as { id: string | number }[];
+
+  return lignes.length > 0;
 }
 
-/** Applique des coordonnees issues du geocodage serveur. */
-export function appliquerGeocodage(
+/** Applique des coordonnées issues du géocodage serveur. */
+export async function appliquerGeocodage(
   id: number,
   resultat: { lat: number; lng: number; precision: Precision; query: string; displayName: string },
-): Structure | null {
-  const changements = db
-    .prepare(
-      `UPDATE structures
-          SET lat = ?, lng = ?, precision = ?, geocode_query = ?, geocode_display_name = ?, updated_at = ?
-        WHERE id = ?`,
-    )
-    .run(
-      resultat.lat,
-      resultat.lng,
-      resultat.precision,
-      resultat.query,
-      resultat.displayName,
-      new Date().toISOString(),
-      id,
-    ).changes;
-  return changements > 0 ? obtenirStructure(id) : null;
+): Promise<Structure | null> {
+  const lignes = (await sql`
+    UPDATE structures SET
+      lat = ${resultat.lat}, lng = ${resultat.lng},
+      precision_geo = ${resultat.precision},
+      geocode_query = ${resultat.query},
+      geocode_display_name = ${resultat.displayName},
+      updated_at = now()
+    WHERE id = ${id}
+    RETURNING id
+  `) as unknown as { id: string | number }[];
+
+  return lignes.length > 0 ? obtenirStructure(id) : null;
 }

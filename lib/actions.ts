@@ -117,12 +117,17 @@ export async function enregistrerStructureAction(
   }
 
   if (id === null) {
-    const creee = creerStructure({ ...valeurs, ...complement, statut: "publie", source: "admin" });
+    const creee = await creerStructure({
+      ...valeurs,
+      ...complement,
+      statut: "publie",
+      source: "admin",
+    });
     rafraichir();
     redirect(`/admin/structures/${creee.id}?enregistre=1`);
   }
 
-  const modifiee = modifierStructure(id, { ...valeurs, ...complement });
+  const modifiee = await modifierStructure(id, { ...valeurs, ...complement });
   if (!modifiee) return { ok: false, message: "Cette fiche n'existe plus." };
 
   rafraichir();
@@ -131,7 +136,7 @@ export async function enregistrerStructureAction(
 
 export async function supprimerStructureAction(id: number): Promise<void> {
   await exigerSession();
-  supprimerStructure(id);
+  await supprimerStructure(id);
   rafraichir();
   redirect("/admin");
 }
@@ -145,25 +150,25 @@ export async function changerStatutAction(id: number, statut: Statut): Promise<v
   // moment de la publication, pas avant, pour ne pas solliciter Nominatim
   // depuis un formulaire public.
   if (statut === "publie") {
-    const structure = obtenirStructure(id);
+    const structure = await obtenirStructure(id);
     if (structure && !structure.national && structure.lat === null) {
       const resultat = await geocoder(structure.localisation, structure.nom);
-      if (resultat) appliquerGeocodage(id, resultat);
+      if (resultat) await appliquerGeocodage(id, resultat);
     }
   }
 
-  changerStatut(id, statut);
+  await changerStatut(id, statut);
   rafraichir();
 }
 
 export async function regeocoderAction(id: number): Promise<void> {
   await exigerSession();
 
-  const structure = obtenirStructure(id);
+  const structure = await obtenirStructure(id);
   if (!structure) return;
 
   const resultat = await geocoder(structure.localisation, structure.nom);
-  if (resultat) appliquerGeocodage(id, resultat);
+  if (resultat) await appliquerGeocodage(id, resultat);
 
   revalidatePath(`/admin/structures/${id}`);
   revalidatePath("/");
@@ -195,7 +200,7 @@ export async function proposerStructureAction(
 
   const { proposantNom, proposantEmail, noteProposition, ...structure } = analyse.data;
 
-  creerStructure({
+  await creerStructure({
     ...structure,
     lat: null,
     lng: null,

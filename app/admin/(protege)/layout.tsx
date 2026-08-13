@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function LayoutProtege({ children }: { children: React.ReactNode }) {
   if (!(await sessionActive())) redirect("/admin/connexion");
 
-  const compteurs = compterParStatut();
+  const compteurs = await compterParStatut();
 
   return (
     <div className="min-h-dvh">

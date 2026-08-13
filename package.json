@@ -9,12 +9,13 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "import": "python scripts/import_xlsx.py",
-    "db:reset": "node --input-type=module -e \"import{rmSync}from'node:fs';for(const f of ['data/annuaire.db','data/annuaire.db-shm','data/annuaire.db-wal'])rmSync(f,{force:true});console.log('Base supprimée : elle sera re-semée au prochain démarrage.')\""
+    "db:push": "node --env-file-if-exists=.env.local scripts/db-push.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "next": "16.3.0",
+    "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",

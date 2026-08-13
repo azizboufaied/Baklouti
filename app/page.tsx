@@ -5,9 +5,11 @@ import { listerCategories, listerStructures } from "@/lib/repo";
 // l'admin doit être visible immédiatement, sans revalidation à attendre.
 export const dynamic = "force-dynamic";
 
-export default function PageAccueil() {
-  const structures = listerStructures({ statut: "publie" });
-  const categories = listerCategories();
+export default async function PageAccueil() {
+  const [structures, categories] = await Promise.all([
+    listerStructures({ statut: "publie" }),
+    listerCategories(),
+  ]);
 
   return <Annuaire structures={structures} categories={categories} />;
 }

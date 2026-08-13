@@ -4,8 +4,8 @@ import { listerCategories } from "@/lib/repo";
 
 export const dynamic = "force-dynamic";
 
-export default function PageNouvelleStructure() {
-  const categories = listerCategories().map((entree) => entree.categorie);
+export default async function PageNouvelleStructure() {
+  const categories = (await listerCategories()).map((entree) => entree.categorie);
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">

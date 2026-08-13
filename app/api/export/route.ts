@@ -13,7 +13,7 @@ export async function GET(requete: Request) {
   const parametres = new URL(requete.url).searchParams;
   const format = parametres.get("format") === "geojson" ? "geojson" : "csv";
 
-  const structures = listerStructures({
+  const structures = await listerStructures({
     statut: "publie",
     categories: parametres.getAll("categorie").filter(Boolean),
     recherche: parametres.get("q") ?? undefined,

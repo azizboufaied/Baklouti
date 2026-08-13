@@ -20,10 +20,10 @@ export default async function PageFiche({
   const identifiant = Number(id);
   if (!Number.isInteger(identifiant)) notFound();
 
-  const structure = obtenirStructure(identifiant);
+  const structure = await obtenirStructure(identifiant);
   if (!structure) notFound();
 
-  const categories = listerCategories().map((entree) => entree.categorie);
+  const categories = (await listerCategories()).map((entree) => entree.categorie);
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">

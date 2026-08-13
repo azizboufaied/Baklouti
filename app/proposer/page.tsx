@@ -12,8 +12,8 @@ export const metadata: Metadata = {
     "de la filière piment absent de la cartographie.",
 };
 
-export default function PageProposer() {
-  const categories = listerCategories().map((entree) => entree.categorie);
+export default async function PageProposer() {
+  const categories = (await listerCategories()).map((entree) => entree.categorie);
 
   return (
     <div className="min-h-dvh bg-ardoise-50">

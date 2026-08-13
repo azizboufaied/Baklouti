@@ -5,10 +5,12 @@ import { LIBELLES_PRECISION } from "@/lib/texte";
 
 export const dynamic = "force-dynamic";
 
-export default function PageAdmin() {
-  const structures = listerStructures({ statut: "publie" });
-  const categories = listerCategories();
-  const compteurs = compterParStatut();
+export default async function PageAdmin() {
+  const [structures, categories, compteurs] = await Promise.all([
+    listerStructures({ statut: "publie" }),
+    listerCategories(),
+    compterParStatut(),
+  ]);
 
   const sansCoordonnees = structures.filter(
     (structure) => !structure.national && structure.lat === null,

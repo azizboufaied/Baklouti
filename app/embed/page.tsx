@@ -26,7 +26,7 @@ export default async function PageEmbed({
   const { categorie, q } = await searchParams;
   const categories = categorie ? (Array.isArray(categorie) ? categorie : [categorie]) : [];
 
-  const structures = listerStructures({ statut: "publie", categories, recherche: q });
+  const structures = await listerStructures({ statut: "publie", categories, recherche: q });
 
   return <CarteEmbarquee structures={structures} />;
 }

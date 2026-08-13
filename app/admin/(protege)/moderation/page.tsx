@@ -50,9 +50,11 @@ function Fiche({ structure }: { structure: Structure }) {
   );
 }
 
-export default function PageModeration() {
-  const enAttente = listerStructures({ statut: "en_attente" });
-  const rejetees = listerStructures({ statut: "rejete" });
+export default async function PageModeration() {
+  const [enAttente, rejetees] = await Promise.all([
+    listerStructures({ statut: "en_attente" }),
+    listerStructures({ statut: "rejete" }),
+  ]);
 
   return (
     <div className="space-y-8">

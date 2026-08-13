@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export async function GET(requete: Request) {
   const parametres = new URL(requete.url).searchParams;
 
-  const structures = listerStructures({
+  const structures = await listerStructures({
     statut: "publie",
     categories: parametres.getAll("categorie").filter(Boolean),
     recherche: parametres.get("q") ?? undefined,
