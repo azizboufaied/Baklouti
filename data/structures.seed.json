@@ -1,0 +1,318 @@
+{
+  "generatedAt": "2026-08-13T12:54:04+00:00",
+  "source": "cartographique.xlsx",
+  "titre": "Cartographie des acteurs du piment en Tunisie",
+  "structures": [
+    {
+      "slug": "crrhab",
+      "nom": "CRRHAB – Centre Régional des Recherches en Horticulture et Agriculture Biologique",
+      "sigle": "CRRHAB",
+      "libelle": "Centre Régional des Recherches en Horticulture et Agriculture Biologique",
+      "localisation": "Chott Mariem, Sousse",
+      "ville": "Sousse",
+      "contact": null,
+      "national": false,
+      "lat": 35.937869,
+      "lng": 10.548994,
+      "precision": "zone",
+      "geocode_query": "Chott Mariem, Sousse, Tunisie",
+      "geocode_display_name": "Chott Mariem, Délégation Akouda, Gouvernorat Sousse, 4042, Tunisie",
+      "activites": [
+        {
+          "categorie": "Recherche & Universités",
+          "thematique": "Amélioration génétique et sélection variétale",
+          "domaine": "Amélioration génétique, résistance aux maladies, horticulture, production du piment",
+          "activite": "Sélection de variétés résistantes à la nécrose racinaire causée par Phytophthora nicotianae"
+        },
+        {
+          "categorie": "Agronomie, Génétique & Production",
+          "thematique": "Amélioration génétique et sélection variétale",
+          "domaine": "Amélioration variétale, résistance aux maladies, itinéraires techniques, production de plants",
+          "activite": "Amélioration variétale, résistance aux maladies, itinéraires techniques, production de plants"
+        }
+      ]
+    },
+    {
+      "slug": "inrat",
+      "nom": "INRAT – Institut National de la Recherche Agronomique de Tunisie",
+      "sigle": "INRAT",
+      "libelle": "Institut National de la Recherche Agronomique de Tunisie",
+      "localisation": "Ariana, Tunis",
+      "ville": "Tunis",
+      "contact": null,
+      "national": false,
+      "lat": 36.968573,
+      "lng": 10.121985,
+      "precision": "zone",
+      "geocode_query": "Ariana, Tunisie",
+      "geocode_display_name": "Gouvernorat Ariana, Tunisie",
+      "activites": [
+        {
+          "categorie": "Recherche & Universités",
+          "thematique": "Ressources génétiques locales",
+          "domaine": "Ressources génétiques, horticulture, caractérisation biochimique",
+          "activite": "Étude d'accessions locales (Gabès, Kebili, Tozeur) – capsaïcine, dihydrocapsaïcine, flavonoïdes, acides phénoliques, minéraux"
+        },
+        {
+          "categorie": "Agronomie, Génétique & Production",
+          "thematique": "Amélioration génétique et sélection variétale",
+          "domaine": "Ressources génétiques, conservation, caractérisation, sélection",
+          "activite": "Ressources génétiques, conservation, caractérisation, sélection"
+        }
+      ]
+    },
+    {
+      "slug": "ira",
+      "nom": "IRA – Institut des Régions Arides",
+      "sigle": "IRA",
+      "libelle": "Institut des Régions Arides",
+      "localisation": "Médenine",
+      "ville": "Médenine",
+      "contact": null,
+      "national": false,
+      "lat": 33.500462,
+      "lng": 10.643213,
+      "precision": "etablissement",
+      "geocode_query": "Institut des Régions Arides, Médenine, Tunisie",
+      "geocode_display_name": "Institut Des Régions Arides - Médenine, RR108, Boughrara, Délégation Medenine Sud, Gouvernorat Médenine, Tunisie",
+      "activites": [
+        {
+          "categorie": "Recherche & Universités",
+          "thematique": "Ressources génétiques locales (oasis et régions arides)",
+          "domaine": "Agriculture en zones arides, cultures oasiennes, valorisation des ressources",
+          "activite": "Caractérisation des piments des oasis, extraction de la capsaïcine, optimisation des procédés"
+        }
+      ]
+    },
+    {
+      "slug": "isa-chott-mariem-laboratoire-agrobiodiversite-et-ecotoxicolo",
+      "nom": "ISA Chott Mariem – Laboratoire Agrobiodiversité et Écotoxicologie (LR21AGR02)",
+      "sigle": null,
+      "libelle": "ISA Chott Mariem – Laboratoire Agrobiodiversité et Écotoxicologie (LR21AGR02)",
+      "localisation": "Chott Mariem, Sousse",
+      "ville": "Sousse",
+      "contact": null,
+      "national": false,
+      "lat": 35.937869,
+      "lng": 10.548994,
+      "precision": "zone",
+      "geocode_query": "Chott Mariem, Sousse, Tunisie",
+      "geocode_display_name": "Chott Mariem, Délégation Akouda, Gouvernorat Sousse, 4042, Tunisie",
+      "activites": [
+        {
+          "categorie": "Recherche & Universités",
+          "thematique": "Ressources génétiques locales",
+          "domaine": "Biodiversité végétale, écotoxicologie, ressources génétiques",
+          "activite": "Étude de 12 accessions locales de Capsicum annuum L. – capsaïcine, dihydrocapsaïcine, diversité biochimique"
+        }
+      ]
+    },
+    {
+      "slug": "laboratoire-de-biodiversite-biotechnologie-et-changements-cl",
+      "nom": "Laboratoire de Biodiversité, Biotechnologie et Changements Climatiques – FST Tunis",
+      "sigle": null,
+      "libelle": "Laboratoire de Biodiversité, Biotechnologie et Changements Climatiques – FST Tunis",
+      "localisation": "Faculté des Sciences de Tunis",
+      "ville": "Faculté des Sciences de Tunis",
+      "contact": null,
+      "national": false,
+      "lat": 36.832833,
+      "lng": 10.148073,
+      "precision": "etablissement",
+      "geocode_query": "Faculté des Sciences de Tunis, Tunisie",
+      "geocode_display_name": "FACULTÉ des SCIENCES DE TUNIS, Rue Bechir Salem Belkheria, Colisée Soula, El Manar 1, El Manar (1), Délégation El Menzah, Tunis, Gouvernorat Tunis, 1030, Tunisie",
+      "activites": [
+        {
+          "categorie": "Molécules bioactives & Biochimie",
+          "thematique": "Capsaïcine, dihydrocapsaïcine et autres composés bioactifs / Activités biologiques",
+          "domaine": "Phytochimie, biotechnologie, activité biologique",
+          "activite": "Composition phytochimique et en capsaïcinoïdes de Capsicum annuum tunisien – activités antioxydante et antimicrobienne"
+        }
+      ]
+    },
+    {
+      "slug": "laboratory-of-electrochemistry-and-environment-enis-sfax",
+      "nom": "Laboratory of Electrochemistry and Environment – ENIS Sfax",
+      "sigle": null,
+      "libelle": "Laboratory of Electrochemistry and Environment – ENIS Sfax",
+      "localisation": "École Nationale d'Ingénieurs de Sfax",
+      "ville": "École Nationale d'Ingénieurs de Sfax",
+      "contact": null,
+      "national": false,
+      "lat": 34.739436,
+      "lng": 10.760402,
+      "precision": "localite",
+      "geocode_query": "Sfax, Tunisie",
+      "geocode_display_name": "Sfax, La Médina, Délégation Sfax Ville, Gouvernorat Sfax, 3000, Tunisie",
+      "activites": [
+        {
+          "categorie": "Molécules bioactives & Biochimie",
+          "thematique": "Capsaïcine, dihydrocapsaïcine et autres composés bioactifs / Activités biologiques",
+          "domaine": "Phytochimie, électrochimie, activité biologique",
+          "activite": "Profilage phytochimique (45 composés), capsaïcinoïdes, composés phénoliques, activités antioxydante et antimicrobienne"
+        }
+      ]
+    },
+    {
+      "slug": "laboratory-of-medicinal-and-environmental-chemistry-hibs-sfa",
+      "nom": "Laboratory of Medicinal and Environmental Chemistry – HIBS Sfax",
+      "sigle": null,
+      "libelle": "Laboratory of Medicinal and Environmental Chemistry – HIBS Sfax",
+      "localisation": "Haut Institut de Biotechnologie de Sfax",
+      "ville": "Haut Institut de Biotechnologie de Sfax",
+      "contact": null,
+      "national": false,
+      "lat": 34.724111,
+      "lng": 10.718606,
+      "precision": "etablissement",
+      "geocode_query": "Institut Supérieur de Biotechnologie de Sfax, Tunisie",
+      "geocode_display_name": "Institut Supérieur de Biotechnologie de Sfax, Route de Soukra, Cité El Habib, Délégation Sfax Ouest, Gouvernorat Sfax, 3052, Tunisie",
+      "activites": [
+        {
+          "categorie": "Molécules bioactives & Biochimie",
+          "thematique": "Extraction, valorisation et biotechnologie",
+          "domaine": "Chimie des produits naturels, molécules bioactives, chimie médicinale",
+          "activite": "Valorisation des composés bioactifs du piment"
+        }
+      ]
+    },
+    {
+      "slug": "unite-bioactive-and-natural-substances-and-biotechnology-ur1",
+      "nom": "Unité Bioactive and Natural Substances and Biotechnology (UR17ES49)",
+      "sigle": null,
+      "libelle": "Unité Bioactive and Natural Substances and Biotechnology (UR17ES49)",
+      "localisation": "Faculté de Médecine Dentaire de Monastir",
+      "ville": "Faculté de Médecine Dentaire de Monastir",
+      "contact": null,
+      "national": false,
+      "lat": 35.764742,
+      "lng": 10.828422,
+      "precision": "etablissement",
+      "geocode_query": "Faculté de Médecine Dentaire de Monastir, Tunisie",
+      "geocode_display_name": "Faculté de médecine dentaire de Monastir, Avenue Avicenne, Monastir, El Medina, Délégation Monastir, Gouvernorat Monastir, 5000, Tunisie",
+      "activites": [
+        {
+          "categorie": "Molécules bioactives & Biochimie",
+          "thematique": "Activités biologiques : antioxydante, antimicrobienne, etc.",
+          "domaine": "Substances naturelles bioactives, biotechnologie",
+          "activite": "Étude de composés bioactifs et de leurs activités biologiques"
+        }
+      ]
+    },
+    {
+      "slug": "programmes-communs-crrhab-inrat-ira",
+      "nom": "Programmes communs CRRHAB – INRAT – IRA",
+      "sigle": null,
+      "libelle": "Programmes communs CRRHAB – INRAT – IRA",
+      "localisation": "Tunisie",
+      "ville": "Tunisie",
+      "contact": null,
+      "national": true,
+      "lat": null,
+      "lng": null,
+      "precision": "national",
+      "geocode_query": null,
+      "geocode_display_name": null,
+      "activites": [
+        {
+          "categorie": "Agronomie, Génétique & Production",
+          "thematique": "Amélioration génétique et sélection variétale",
+          "domaine": "Amélioration du piment tunisien, adaptation aux stress abiotiques et biotiques, valorisation des variétés locales",
+          "activite": "Amélioration du piment tunisien, adaptation aux stress abiotiques et biotiques, valorisation des variétés locales"
+        }
+      ]
+    },
+    {
+      "slug": "unisem-tunisie",
+      "nom": "UNISEM Tunisie",
+      "sigle": null,
+      "libelle": "UNISEM Tunisie",
+      "localisation": "Mégrine",
+      "ville": "Mégrine",
+      "contact": null,
+      "national": false,
+      "lat": 36.770335,
+      "lng": 10.231589,
+      "precision": "localite",
+      "geocode_query": "Mégrine, Ben Arous, Tunisie",
+      "geocode_display_name": "Mégrine, Megrine Superieure, Délégation Megrine, Gouvernorat Ben Arous, 2033, Tunisie",
+      "activites": [
+        {
+          "categorie": "Semences & Entreprises (Production)",
+          "thematique": "Transformation industrielle et valorisation commerciale",
+          "domaine": "Production et distribution de semences potagères",
+          "activite": "Production et distribution de semences potagères, dont plusieurs variétés de piment et de poivron"
+        }
+      ]
+    },
+    {
+      "slug": "cotugrain",
+      "nom": "Cotugrain",
+      "sigle": null,
+      "libelle": "Cotugrain",
+      "localisation": "Mégrine",
+      "ville": "Mégrine",
+      "contact": null,
+      "national": false,
+      "lat": 36.770335,
+      "lng": 10.231589,
+      "precision": "localite",
+      "geocode_query": "Mégrine, Ben Arous, Tunisie",
+      "geocode_display_name": "Mégrine, Megrine Superieure, Délégation Megrine, Gouvernorat Ben Arous, 2033, Tunisie",
+      "activites": [
+        {
+          "categorie": "Semences & Entreprises (Production)",
+          "thematique": "Transformation industrielle et valorisation commerciale",
+          "domaine": "Sélection et commercialisation de semences",
+          "activite": "Sélection et commercialisation de semences, variétés de piment (ex : STARTER, MINERVA…)"
+        }
+      ]
+    },
+    {
+      "slug": "syngenta-vegetable-seeds-tunisia",
+      "nom": "Syngenta Vegetable Seeds Tunisia",
+      "sigle": null,
+      "libelle": "Syngenta Vegetable Seeds Tunisia",
+      "localisation": "Tunisie",
+      "ville": "Tunisie",
+      "contact": null,
+      "national": true,
+      "lat": null,
+      "lng": null,
+      "precision": "national",
+      "geocode_query": null,
+      "geocode_display_name": null,
+      "activites": [
+        {
+          "categorie": "Semences & Entreprises (Production)",
+          "thematique": "Transformation industrielle et valorisation commerciale",
+          "domaine": "Semences potagères (poivron et piment)",
+          "activite": "Semences potagères (poivron et piment), variétés performantes et résistantes"
+        }
+      ]
+    },
+    {
+      "slug": "gica",
+      "nom": "GICA – Groupement des Industries de Conserves Alimentaires",
+      "sigle": "GICA",
+      "libelle": "Groupement des Industries de Conserves Alimentaires",
+      "localisation": "Tunis",
+      "ville": "Tunis",
+      "contact": null,
+      "national": false,
+      "lat": 36.800207,
+      "lng": 10.185776,
+      "precision": "localite",
+      "geocode_query": "Tunis, Tunisie",
+      "geocode_display_name": "Tunis, Gouvernorat Tunis, Tunisie",
+      "activites": [
+        {
+          "categorie": "Industrie & Transformation",
+          "thematique": "Transformation industrielle et valorisation commerciale",
+          "domaine": "Transformation industrielle, harissa, sauces, conserves, produits dérivés",
+          "activite": "Regroupe les transformateurs de piment et producteurs de harissa en Tunisie – 25 unités de conserverie, capacité globale d'environ 3 500 tonnes de piments frais par jour"
+        }
+      ]
+    }
+  ]
+}

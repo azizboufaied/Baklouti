@@ -32,6 +32,15 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
+
+# base SQLite locale : régénérable depuis data/structures.seed.json
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
+
+# cache du géocodage Nominatim (régénérable, mais évite de re-solliciter le service)
+!/scripts/.geocode-cache.json
 
 # vercel
 .vercel

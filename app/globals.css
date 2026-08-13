@@ -1,26 +1,128 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "leaflet.markercluster/dist/MarkerCluster.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Thème : le piment donne l'accent chaud, le reste reste sobre pour que
+   la carte et les couleurs de catégories gardent la priorité visuelle. */
+@theme {
+  --color-braise-50: #fef4f2;
+  --color-braise-100: #fde4df;
+  --color-braise-200: #fbcdc4;
+  --color-braise-400: #f0705c;
+  --color-braise-600: #d13b26;
+  --color-braise-700: #af2f1e;
+  --color-braise-900: #7a2418;
+
+  --color-ardoise-50: #f8f8f7;
+  --color-ardoise-100: #f0efed;
+  --color-ardoise-200: #e2e0dc;
+  --color-ardoise-400: #a8a49c;
+  --color-ardoise-500: #78746c;
+  --color-ardoise-700: #4a4741;
+  --color-ardoise-900: #262420;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ardoise-50);
+  color: var(--color-ardoise-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------------------------- Leaflet */
+
+.leaflet-container {
+  background: #e8eef2;
+  font: inherit;
+  isolation: isolate;
+}
+
+/* Pastille de catégorie utilisée comme marqueur (divIcon). */
+.marqueur-pastille {
+  background: none;
+  border: none;
+}
+
+.marqueur-pastille span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.marqueur-pastille:hover span {
+  transform: scale(1.25);
+}
+
+.marqueur-pastille.est-actif span {
+  transform: scale(1.4);
+  box-shadow:
+    0 0 0 4px rgb(209 59 38 / 0.35),
+    0 2px 8px rgb(0 0 0 / 0.4);
+}
+
+/* Amas de marqueurs : neutre, pour ne pas concurrencer les couleurs de catégorie. */
+.amas-marqueurs {
+  background: rgb(255 255 255 / 0.85);
+  border-radius: 9999px;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.25);
+  display: grid;
+  place-items: center;
+}
+
+.amas-marqueurs span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: var(--color-ardoise-900);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 0.75rem 0.9rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.leaflet-bar a {
+  color: var(--color-ardoise-900);
+}
+
+/* Le crédit OSM est obligatoire (licence ODbL) : on le garde lisible. */
+.leaflet-control-attribution {
+  font-size: 0.6875rem;
+  background: rgb(255 255 255 / 0.85);
+}
+
+/* ------------------------------------------------------- Accessibilité */
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueur-pastille span {
+    transition: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-braise-600);
+  outline-offset: 2px;
 }
