@@ -120,19 +120,23 @@ export async function listerStructures(filtres: StructureFilters = {}): Promise<
             )`
       : sql``;
 
+  // `normaliser_texte` (migration 0002) retire les accents et passe en
+  // minuscules, exactement comme `normaliser()` côté client : une même recherche
+  // renvoie donc le même résultat sur la carte, dans l'API et dans l'export.
   const terme = recherche?.trim();
+  const motif = terme ? `%${terme}%` : "";
   const filtreRecherche = terme
     ? sql`AND (
-            s.nom ILIKE ${"%" + terme + "%"}
-         OR s.localisation ILIKE ${"%" + terme + "%"}
-         OR s.ville ILIKE ${"%" + terme + "%"}
+            normaliser_texte(s.nom)          LIKE normaliser_texte(${motif})
+         OR normaliser_texte(s.localisation) LIKE normaliser_texte(${motif})
+         OR normaliser_texte(s.ville)        LIKE normaliser_texte(${motif})
          OR EXISTS (
               SELECT 1 FROM activites a
                WHERE a.structure_id = s.id
-                 AND (a.categorie   ILIKE ${"%" + terme + "%"}
-                   OR a.thematique  ILIKE ${"%" + terme + "%"}
-                   OR a.domaine     ILIKE ${"%" + terme + "%"}
-                   OR a.activite    ILIKE ${"%" + terme + "%"})
+                 AND (normaliser_texte(a.categorie)  LIKE normaliser_texte(${motif})
+                   OR normaliser_texte(a.thematique) LIKE normaliser_texte(${motif})
+                   OR normaliser_texte(a.domaine)    LIKE normaliser_texte(${motif})
+                   OR normaliser_texte(a.activite)   LIKE normaliser_texte(${motif}))
             )
           )`
     : sql``;
