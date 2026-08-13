@@ -29,9 +29,13 @@ function instance(): postgres.Sql {
     // Le pooler Supabase (port 6543) fonctionne en mode « transaction » : les
     // requêtes préparées ne survivent pas d'une transaction à l'autre.
     prepare: false,
-    // Chaque instance serverless ouvre son propre pool : on reste modeste pour
-    // ne pas épuiser les connexions disponibles côté Supabase.
-    max: process.env.NODE_ENV === "production" ? 1 : 5,
+    // Ne jamais descendre à 1. Une page qui lance deux requêtes en parallèle
+    // (`Promise.all` sur l'accueil) les verrait entrer en collision sur l'unique
+    // connexion, et Postgres annulerait l'instruction — erreur 57014, page 500
+    // en production alors que tout fonctionne en développement.
+    // Le pooler est justement là pour multiplexer : un petit pool par instance
+    // ne met pas Supabase en difficulté.
+    max: 5,
     idle_timeout: 20,
     connect_timeout: 15,
     onnotice: () => {},
