@@ -97,6 +97,7 @@ Copiez `.env.local.example` en `.env.local`. Ce fichier est ignoré par git.
 | `DATABASE_URL` | — | **Obligatoire.** Chaîne de connexion Postgres (Supabase, pooler transactionnel). |
 | `ADMIN_PASSWORD` | `piment` | Mot de passe de l'administration. **Obligatoire avant toute mise en ligne** — un bandeau d'avertissement s'affiche tant qu'il n'est pas défini. |
 | `SESSION_SECRET` | dérivé du mot de passe | Signature des cookies de session. Par défaut, changer le mot de passe invalide les sessions ouvertes. |
+| `CRON_SECRET` | — | Facultatif. Protège `/api/sante` : si la variable existe, Vercel envoie le jeton et les autres appels sont refusés. |
 
 ## Mettre à jour les données
 
@@ -139,6 +140,27 @@ npm run build
 
 Le cookie de session passe automatiquement en `secure` en production. Le script
 d'import Python reste un outil local : il ne s'exécute jamais sur Vercel.
+
+### Maintien en éveil de la base
+
+Un projet Supabase gratuit est **mis en pause après environ sept jours sans
+activité** : le site tombe alors jusqu'à une reprise manuelle depuis le tableau
+de bord. Pour un annuaire au trafic irrégulier, c'est la panne la plus probable.
+
+`vercel.json` déclare donc un cron quotidien vers `/api/sante`, qui interroge la
+base et réarme ce compteur. La route sert aussi de sonde de supervision :
+
+```bash
+curl https://votre-domaine/api/sante
+```
+
+```json
+{ "ok": true, "base": "accessible", "latenceMs": 293, "structuresPubliees": 13 }
+```
+
+Elle répond `503` si la base est injoignable — de quoi diagnostiquer une panne
+sans ouvrir la carte. Les crons ne s'exécutent que sur les déploiements de
+production, et le plan Hobby en autorise un par jour.
 
 ## Intégrer la carte ailleurs
 
